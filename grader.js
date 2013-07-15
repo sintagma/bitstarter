@@ -57,8 +57,8 @@ var loadChecks = function(checksfile) {
 var checkHtmlFile = function(htmlfile, checksfile) { // Receives HTML and array of tags to check
     $ = cheerioHtmlFile(htmlfile); // Calls previous function to load HTML into cheerio
     var checks = loadChecks(checksfile).sort(); // Calls previous function to load and sort HTML tags to check
-    console.log($);
-    console.log(checks);
+    console.log("This is the content of cheerioHtmlFile var: "+ $);
+    console.log("This is the content of checks var: " + checks);
     var out = {};
     for(var ii in checks) {
         var present = $(checks[ii]).length > 0;
