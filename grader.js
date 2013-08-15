@@ -31,6 +31,7 @@ var restler = require('restler'); // to grab pages via HTTP
 // Set default values (for both the file to check and the JSON list of tags to check) in case they are not provided from the comand line
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
+var URL_DEFAULT = "https://agile-tor-7054.herokuapp.com/";
   
 // This function asserts if needed file exists
 var assertFileExists = function(infile) {
@@ -79,11 +80,19 @@ if(require.main == module) { //If this is called directly from the command line 
     program // ...Read the following options from the command line
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT) // call and get a copy of assertFileExists results
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT) // call and get a copy of assetsFileExists results
-        .option('-u, --url <url_address>', 'Path to URL', clone(assertFileExists), HTMLFILE_DEFAULT) 
+        .option('-u, --url <url_address>', 'Path to URL', null, HTMLFILE_DEFAULT) 
         .parse(process.argv); // Process all arguments provided through the command line
-    var checkJson = checkHtmlFile(program.file, program.checks); // Call checkHtmlFile, feed it with both the location of file to check and JSON checklist and save results in checkJson
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
+
+	if(program.url != null){
+		var checkJson = checkHtmlFile(program.url, program.checks);
+		}
+		else
+		{
+
+		    var checkJson = checkHtmlFile(program.file, program.checks); // Call checkHtmlFile, feed it with both the location of file to check and JSON checklist and save results in checkJson
+		    var outJson = JSON.stringify(checkJson, null, 4);
+		    console.log(outJson);
+		}
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
