@@ -26,7 +26,7 @@ References:
 var fs = require('fs'); // To read content from files
 var program = require('commander'); // to create and define options to call with this program from command line
 var cheerio = require('cheerio'); // to scrape HTML (it uses JQuery) 
-var restler = require('restler'); // to grab pages via HTTP
+var request = require('restler'); // to grab pages via HTTP
 
 // Set default values (for both the file to check and the JSON list of tags to check) in case they are not provided from the comand line
 var HTMLFILE_DEFAULT = "index.html";
@@ -53,17 +53,17 @@ var loadChecks = function(checksfile) { // Receives JSON checklist from var chec
 };
 
 // This function combines the preceding and does the actual job
-var checkHtmlFile = function(htmlfile, checksfile) { // Receives HTML and array of tags to check
-    $ = cheerioHtmlFile(htmlfile); // Calls previous function to load HTML into cheerio
+var checkHtmlFile = function(htmlfile, checksfile, $) { // Receives HTML and array of tags to check
+    $ = $ || cheerioHtmlFile(htmlfile); // Calls previous function to load HTML into cheerio
     var checks = loadChecks(checksfile).sort(); // Calls previous function to load and sort HTML tags to check
-    console.log("This is the content of cheerioHtmlFile var: "+ $); // Added by me to see the output
-    console.log("This is the content of checks var: " + checks); // Added by me to see the output
+//    console.log("This is the content of cheerioHtmlFile var: "+ $); // Added by me to see the output
+//    console.log("This is the content of checks var: " + checks); // Added by me to see the output
     var out = {}; // var to be filled with results of check
     for(var ii in checks) { // Loop through the JSON list of tags to check
         var present = $(checks[ii]).length > 0; // Need to see how this works 
         out[checks[ii]] = present; // Need to see how this works
-        console.log("This is the content of var present: " + present); // Added by me to see the output
-        console.log("This is the content of var out: " + out); // Added by me to see the output
+//        console.log("This is the content of var present: " + present); // Added by me to see the output
+//        console.log("This is the content of var out: " + out); // Added by me to see the output
     }
     return out;
 };
@@ -79,16 +79,26 @@ if(require.main == module) { //If this is called directly from the command line 
     program // ...Read the following options from the command line
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT) // call and get a copy of assertFileExists results
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT) // call and get a copy of assetsFileExists results
-        .option('-u, --url <url_address>', 'Path to URL') 
+        .option('-u, --url <url>', 'Path to URL') 
         .parse(process.argv); // Process all arguments provided through the command line
 
-	if(program.url != null){
-		var checkJson = checkHtmlFile(program.url, program.checks);
+	if(program.url.indexOf('http') != -1){
+		request.get(program.url).on('complete', function (result) {
+			if (!(result instanceof Error)) {
+				var checkJson = checkHtmlFile(program.file, program.checks, cheerio.load(result));
+				var outJson = JSON.stringify(checkJson, null, 4);
+				console.log(outJson);
+				}
+				else
+				{
+				console.log('Error' + result.instanceOf);
+				}
+		});
 		}
 		else
 		{
 
-		    var checkJson = checkHtmlFile(program.file, program.checks); // Call checkHtmlFile, feed it with both the location of file to check and JSON checklist and save results in checkJson
+		    var checkJson = checkHtmlFile(program.file, program.checks,program.url); // Call checkHtmlFile, feed it with both the location of file to check and JSON checklist and save results in checkJson
 		    var outJson = JSON.stringify(checkJson, null, 4);
 		    console.log(outJson);
 		}
